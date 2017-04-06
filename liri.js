@@ -16,6 +16,7 @@
 var twitter = require('twitter');
 var spotify = require('spotify');
 var request = require('request');
+var fs = require("fs");
 var program = process.argv[2];
 
 switch (program) {
@@ -32,7 +33,7 @@ switch (program) {
         break;
 
     case "do-what-it-says":
-        doit();
+        doIt();
         break;
 }
 
@@ -47,12 +48,12 @@ function tweets() {
 
     var params = {
         screen_name: "Caroline_Dough",
-        count: 1
+        count: 20
     };
 
     client.get('statuses/user_timeline', params, function(error, tweets, response) {
         if (!error) {
-            console.log(JSON.stringify(tweets, null, 2));
+            console.log("You tweeted " + JSON.stringify(tweets[2].text, null, 2) + " on " + JSON.stringify(tweets[0].created_at, null, 2));
         }
     });
 }
@@ -78,6 +79,12 @@ function spotifyPlay() {
         if (err) {
             console.log('Error occurred: ' + err);
             return;
+        }
+        else {
+            console.log("Artist: " + data.tracks.items[0].artists[0].name);
+            console.log("Song Name: " + data.tracks.items[0].name);
+            console.log("Preview: " + data.tracks.items[0].preview_url);
+            console.log("Album: " + data.tracks.items[0].album.name);
         }
 
     });
@@ -122,4 +129,15 @@ function movie() {
         // 	movieName = "Mr. Nobody"
         // }
     });
+}
+// Using the fs Node package, LIRI will take the text inside of random.txt and then use it to call one of LIRI's commands.
+// It should run spotify-this-song for "I Want it That Way," as follows the text in random.txt.
+// Feel free to change the text in that document to test out the feature for other commands.
+function doIt () {
+
+    fs.readFile("random.txt", "utf8", function(error, data) {
+        var dataArr = data.split(",");
+        console.log(dataArr);
+    });
+
 }
