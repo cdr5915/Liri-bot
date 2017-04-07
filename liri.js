@@ -18,6 +18,7 @@ var spotify = require('spotify');
 var request = require('request');
 var fs = require("fs");
 var program = process.argv[2];
+var songName = "";
 
 switch (program) {
     case "my-tweets":
@@ -53,14 +54,17 @@ function tweets() {
 
     client.get('statuses/user_timeline', params, function(error, tweets, response) {
         if (!error) {
-            console.log("You tweeted " + JSON.stringify(tweets[2].text, null, 2) + " on " + JSON.stringify(tweets[0].created_at, null, 2));
+            for (var i = 0; i < 20; i++) {
+                console.log("You tweeted " + JSON.stringify(tweets[i].text, null, 2) + " on " + JSON.stringify(tweets[0].created_at, null, 2));
+            }
         }
+
     });
 }
 
 function spotifyPlay() {
 
-    var songName = "";
+    
     var nodeSongArgs = process.argv;
 
     // Create an empty string for holding the song
@@ -75,19 +79,35 @@ function spotifyPlay() {
     // Log the address we built
     console.log("I want to listen to" + songName);
 
-    spotify.search({ type: 'track', query: songName}, function(err, data) {
-        if (err) {
-            console.log('Error occurred: ' + err);
-            return;
-        }
-        else {
-            console.log("Artist: " + data.tracks.items[0].artists[0].name);
-            console.log("Song Name: " + data.tracks.items[0].name);
-            console.log("Preview: " + data.tracks.items[0].preview_url);
-            console.log("Album: " + data.tracks.items[0].album.name);
-        }
 
-    });
+    if (nodeSongArgs.length != 3) {
+        spotify.search({ type: 'track', query: songName }, function(err, data) {
+            if (!err) {
+                console.log("Artist: " + data.tracks.items[0].artists[0].name);
+                console.log("Song Name: " + data.tracks.items[0].name);
+                console.log("Preview: " + data.tracks.items[0].preview_url);
+                console.log("Album: " + data.tracks.items[0].album.name);
+            } else if (err) {
+                console.log('Error occurred: ' + err);
+                return;
+            }
+
+        });
+    } else if (nodeSongArgs.length === 3) {
+        spotify.search({ type: 'track', query: "The Sign Ace of Base" }, function(err, data) {
+            if (!err) {
+                console.log("Artist: " + data.tracks.items[0].artists[0].name);
+                console.log("Song Name: " + data.tracks.items[0].name);
+                console.log("Preview: " + data.tracks.items[0].preview_url);
+                console.log("Album: " + data.tracks.items[0].album.name);
+            } else if (err) {
+                console.log('Error occurred: ' + err);
+                return;
+            }                                               
+        });
+
+    }
+
 }
 
 
@@ -113,31 +133,75 @@ function movie() {
     var queryUrl = "http://www.omdbapi.com/?t=" + movieName + "&y=&plot=short&r=json";
     console.log(queryUrl);
 
-    request(queryUrl, function(error, response, body) {
+    var mrNobodyUrl =   "http://www.omdbapi.com/?t=Mr+Nobody&y=&plot=short&r=json";
 
-        if (!error && response.statusCode === 200) {
 
-            console.log("Title: " + JSON.parse(body).Title);
-            console.log("Release Year: " + JSON.parse(body).Year);
-            // console.log("IMBD Rating: " + JSON.parse(body).Rating[0].value);
-            console.log("Country: " + JSON.parse(body).Country);
-            console.log("Language: " + JSON.parse(body).Language);
-            console.log("Plot: " + JSON.parse(body).Plot);
-            console.log("Actors: " + JSON.parse(body).Actors);
-        }
-        // else if (movieName = "") {
-        // 	movieName = "Mr. Nobody"
-        // }
-    });
+    if (nodeMovieArgs.length >= 4) {
+
+        request(queryUrl, function(error, response, body) {
+
+            if (!error && response.statusCode === 200) {
+                console.log("Title: " + JSON.parse(body).Title);
+                console.log("Release Year: " + JSON.parse(body).Year);
+                console.log("IMBD Rating: " + JSON.parse(body).Ratings[0].Value);
+                console.log("Country: " + JSON.parse(body).Country);
+                console.log("Language: " + JSON.parse(body).Language);
+                console.log("Plot: " + JSON.parse(body).Plot);
+                console.log("Actors: " + JSON.parse(body).Actors);
+                console.log("Rotten Tomatoes Rating: " +  JSON.parse(body).Ratings[1].Value);
+            }
+            else if (error) {
+                console.log('Error occurred: ' + error);
+                return;
+            }
+       });
+    }
+
+    else if (nodeMovieArgs.length === 3) {
+        request(mrNobodyUrl, function(error, response, body) {
+            if (!error && response.statusCode === 200) {
+                console.log("Title: " + JSON.parse(body).Title);
+                console.log("Release Year: " + JSON.parse(body).Year);
+                console.log("IMBD Rating: " + JJSON.parse(body).Ratings[0].Value);                
+                console.log("Country: " + JSON.parse(body).Country);
+                console.log("Language: " + JSON.parse(body).Language);
+                console.log("Plot: " + JSON.parse(body).Plot);
+                console.log("Actors: " + JSON.parse(body).Actors);
+                console.log("Rotten Tomatoes Rating: " +  JSON.parse(body).Ratings[1].Value);
+
+            }
+            else if (error) {
+                console.log('Error occurred: ' + error);
+                return;
+            }
+        });
+
+    }
 }
+
 // Using the fs Node package, LIRI will take the text inside of random.txt and then use it to call one of LIRI's commands.
 // It should run spotify-this-song for "I Want it That Way," as follows the text in random.txt.
 // Feel free to change the text in that document to test out the feature for other commands.
-function doIt () {
+
+function doIt() {
 
     fs.readFile("random.txt", "utf8", function(error, data) {
         var dataArr = data.split(",");
-        console.log(dataArr);
+        songName = dataArr[1];
+        console.log(dataArr[1]);
+        
+        spotify.search({ type: 'track', query: songName }, function(err, data) {
+            if (!err) {
+                console.log("Artist: " + data.tracks.items[0].artists[0].name);
+                console.log("Song Name: " + data.tracks.items[0].name);
+                console.log("Preview: " + data.tracks.items[0].preview_url);
+                console.log("Album: " + data.tracks.items[0].album.name);
+            } else if (err) {
+                console.log('Error occurred: ' + err);
+                return;
+            }
+
+        });
     });
 
 }
